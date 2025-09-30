@@ -53,7 +53,7 @@ export async function seed(db: Kysely<DB>): Promise<void> {
     } else {
       numSongs = faker.number.int({ min: 10, max: 20 });
     }
-
+    
     console.log(album.name, numSongs);
 
     for (let i = 0; i < numSongs; i += 1) {
@@ -68,3 +68,5 @@ export async function seed(db: Kysely<DB>): Promise<void> {
     }
   }
 }
+
+
