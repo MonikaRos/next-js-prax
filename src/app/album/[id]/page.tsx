@@ -1,6 +1,4 @@
-import { DB } from "@/lib/db-types";
-import SQLite from "better-sqlite3";
-import { Kysely, SqliteDialect } from "kysely";
+import { getDb } from "@/lib/db";
 import Link from "next/link";
 
 export default async function AlbumDetailPage({
@@ -10,9 +8,7 @@ export default async function AlbumDetailPage({
 }) {
   const { id } = params;
   const numericId = Number(id);
-
-  const dialect = new SqliteDialect({ database: new SQLite("db.sqlite") });
-  const db = new Kysely<DB>({ dialect });
+  const db = getDb();
 
   const album = await db
     .selectFrom("albums")
