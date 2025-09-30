@@ -54,7 +54,7 @@ export default async function AlbumDetailPage({
                   <tr key={song.id}>
                     <td className="border border-gray-300 px-4 py-2">{idx + 1}</td>
                     <td className="border border-gray-300 px-4 py-2">{song.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{song.duration}</td>
+                    <td className="border border-gray-300 px-4 py-2">{Math.floor(song.duration / 60)}:{String(song.duration % 60).padStart(2, '0')}</td>
                   </tr>
                 ))
               )}
