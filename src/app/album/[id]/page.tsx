@@ -10,11 +10,18 @@ export default async function AlbumDetailPage({
   const numericId = Number(id);
   const db = getDb();
 
-  const album = await db
-    .selectFrom("albums")
-    .select(["id", "name"])
-    .where("id", "=", numericId)
-    .executeTakeFirst();
+const album = await db
+  .selectFrom("albums")
+  .innerJoin("authors", "authors.id", "albums.author_id")
+  .select([
+    "albums.id as id",
+    "albums.name as name",
+    "authors.id as authorId",
+    "authors.name as authorName"
+  ])
+  .where("albums.id", "=", numericId)
+  .executeTakeFirst();
+
 
   const songs = await db
     .selectFrom("songs")
@@ -22,12 +29,20 @@ export default async function AlbumDetailPage({
     .where("album_id", "=", numericId)
     .execute();
 
+
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <div className="text-3xl font-bold mb-4">
           ALBUM DETAIL: {album?.name}
         </div>
+        <div className="text-lg mb-4 font-medium text-gray-700">  {/*Pridanie autora a preklik na jeho detail*/}
+          Autor:{" "} 
+          <Link href={`/author/${album?.authorId}`} className="text-2xl font-bold mb-4">
+          {album?.authorName}
+          </Link>
+        </div>
+
         <div>
           <h2 className="text-xl font-semibold mb-2">Songs:</h2>
           <table className="table-auto border-collapse border border-gray-300 w-full mb-4">
