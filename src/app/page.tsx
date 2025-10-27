@@ -1,11 +1,8 @@
-import { DB } from "@/lib/db-types";
-import SQLite from "better-sqlite3";
-import { Kysely, SqliteDialect } from "kysely";
+import { getDb } from "@/lib/db";
 import Link from "next/link";
 
 export default async function Home() {
-  const dialect = new SqliteDialect({ database: new SQLite("db.sqlite") });
-  const db = new Kysely<DB>({ dialect });
+  const db = getDb();
 
   const albums = await db
     .selectFrom("albums")
@@ -15,6 +12,7 @@ export default async function Home() {
       "albums.name",
       "albums.release_date",
       "authors.name as author_name",
+      "authors.id as author_id",
     ])
     .execute();
 
@@ -28,8 +26,14 @@ export default async function Home() {
               <div className="card-body">
                 <span className="badge badge-xs badge-warning">Pop</span>
                 <h2 className="text-3xl font-bold">{album.name}</h2>
+
                 <p>ID: {album.id}</p>
-                <p>Author: {album.author_name}</p>
+                <p>
+                  Author:{" "}
+                  <Link href={`/author/${album.author_id}`}>
+                    {album.author_name}
+                  </Link>
+                </p>
                 <p>
                   Release Date: {new Date(album.release_date).toDateString()}
                 </p>
@@ -38,7 +42,7 @@ export default async function Home() {
                     className="btn btn-primary btn-block"
                     href={`/album/${album.id}`}
                   >
-                    Details
+                    Detail
                   </Link>
                 </div>
               </div>

@@ -22,5 +22,6 @@
             },
             "idleTimeout": 0
         }
-    ]
+    ],
+    "sqltools.useNodeRuntime": true
 }
