@@ -3,13 +3,15 @@ import { faker } from "@faker-js/faker";
 import type { Kysely } from "kysely";
 
 export async function seed(db: Kysely<DB>): Promise<void> {
+  await db.deleteFrom("playlists_songs").execute().catch(() => {});
+  await db.deleteFrom("playlists").execute().catch(() => {});
   await db.deleteFrom("songs").execute();
   await db.deleteFrom("albums").execute();
   await db.deleteFrom("authors").execute();
 
-  for (let i = 0; i < 20; i += 1) {
+  
+  for (let i = 0; i < 20; i++) {
     const numBioParagraphs = faker.number.int({ min: 0, max: 5 });
-
     const bio =
       numBioParagraphs !== 0 ? faker.lorem.paragraph(numBioParagraphs) : null;
 
@@ -24,10 +26,11 @@ export async function seed(db: Kysely<DB>): Promise<void> {
 
   const authors = await db.selectFrom("authors").selectAll().execute();
 
+  
   for (const author of authors) {
     const numAlbums = faker.number.int({ min: 0, max: 10 });
 
-    for (let i = 0; i < numAlbums; i += 1) {
+    for (let i = 0; i < numAlbums; i++) {
       await db
         .insertInto("albums")
         .values({
@@ -41,22 +44,17 @@ export async function seed(db: Kysely<DB>): Promise<void> {
 
   const albums = await db.selectFrom("albums").selectAll().execute();
 
+  
   for (const album of albums) {
     const typeOfAlbum = faker.number.int({ min: 0, max: 9 });
-
     let numSongs = 1;
 
-    if (typeOfAlbum < 2) {
-      numSongs = 1;
-    } else if (typeOfAlbum < 5) {
+    if (typeOfAlbum < 2) numSongs = 1;
+    else if (typeOfAlbum < 5)
       numSongs = faker.number.int({ min: 4, max: 6 });
-    } else {
-      numSongs = faker.number.int({ min: 10, max: 20 });
-    }
-    
-    console.log(album.name, numSongs);
+    else numSongs = faker.number.int({ min: 10, max: 20 });
 
-    for (let i = 0; i < numSongs; i += 1) {
+    for (let i = 0; i < numSongs; i++) {
       await db
         .insertInto("songs")
         .values({
@@ -67,6 +65,39 @@ export async function seed(db: Kysely<DB>): Promise<void> {
         .execute();
     }
   }
+
+  
+  const songs = await db.selectFrom("songs").selectAll().execute();
+  const playlistsCount = 5;
+  const playlists = [];
+
+  for (let i = 0; i < playlistsCount; i++) {
+    const name = faker.word.words({ count: 2 }) + " Mix";
+
+    const playlist = await db
+      .insertInto("playlists")
+      .values({ name })
+      .returning(["id"])
+      .executeTakeFirst();
+
+    if (playlist) playlists.push(playlist);
+  }
+
+  
+  for (const playlist of playlists) {
+    const numSongsInPlaylist = faker.number.int({ min: 3, max: 8 });
+    const chosenSongs = faker.helpers.arrayElements(songs, numSongsInPlaylist);
+
+    for (const song of chosenSongs) {
+      await db
+        .insertInto("playlists_songs")
+        .values({
+          playlist_id: playlist.id,
+          song_id: song.id,
+        })
+        .execute();
+    }
+  }
+
+  console.log(`✅ Seed hotový: ${authors.length} autorov, ${albums.length} albumov, ${songs.length} pesničiek, ${playlistsCount} playlistov`);
 }
-
-
