@@ -14,7 +14,7 @@ export default async function PlaylistsPage() {
       "users.name as userName",
       "users.email as userEmail"
     ])
-    .where("playlists.user_id", "=", 12)
+    .where("playlists.user_id", "=", 1)
     .execute();
 
   return (
