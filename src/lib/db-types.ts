@@ -25,6 +25,7 @@ export interface Authors {
 export interface Playlists {
   id: Generated<number>;
   name: string;
+  user_id: number;
 }
 
 export interface PlaylistsSongs {
@@ -40,10 +41,18 @@ export interface Songs {
   name: string;
 }
 
+export interface Users {
+  email: string;
+  id: Generated<number>;
+  name: string | null;
+  password: string;
+}
+
 export interface DB {
   albums: Albums;
   authors: Authors;
   playlists: Playlists;
   playlists_songs: PlaylistsSongs;
   songs: Songs;
+  users: Users;
 }

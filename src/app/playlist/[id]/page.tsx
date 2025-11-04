@@ -10,18 +10,24 @@ export default async function PlaylistDetailPage({
   const numericId = Number(id);
   const db = getDb();
 
- 
+
   const playlist = await db
     .selectFrom("playlists")
-    .select(["id", "name"])
-    .where("id", "=", numericId)
+    .innerJoin("users", "users.id", "playlists.user_id")
+    .select([
+      "playlists.id", 
+      "playlists.name",
+      "users.name as userName",
+      "users.email as userEmail"
+    ])
+    .where("playlists.id", "=", numericId)
     .executeTakeFirst();
 
   if (!playlist) {
     return <div className="p-10 text-center text-red-600">Playlist not found</div>;
   }
 
-  
+
   const songs = await db
     .selectFrom("playlists_songs")
     .innerJoin("songs", "songs.id", "playlists_songs.song_id")
@@ -39,7 +45,14 @@ export default async function PlaylistDetailPage({
 
   return (
     <div className="font-sans min-h-screen flex flex-col items-center justify-start p-10">
-      <h1 className="text-3xl font-bold mb-8">🎧 {playlist.name}</h1>
+      <h1 className="text-3xl font-bold mb-4">🎧 {playlist.name}</h1>
+      
+      <div className="mb-8 text-center">
+        <p className="text-sm text-gray-600">
+          Created by: <strong>{playlist.userName}</strong>
+        </p>
+        <p className="text-xs text-gray-500">{playlist.userEmail}</p>
+      </div>
 
       {songs.length === 0 ? (
         <p className="text-gray-500">No songs in this playlist.</p>
