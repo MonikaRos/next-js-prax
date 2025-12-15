@@ -8,7 +8,11 @@ function formatDuration(duration: number): string {
   return `${minutes}` + ":" + `${seconds}`.padStart(2, "0");
 }
 
-export default async function PlaylistPage({ params }: { params: { id: string } }) {
+export default async function PlaylistPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { id } = params;
 
   const playlistId = parseInt(id);
