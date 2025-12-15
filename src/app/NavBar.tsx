@@ -36,13 +36,7 @@ export function NavBar() {
         >
           Search
         </Link>
-
-        <Link
-          href={{
-            pathname: "/playlists",
-          }}
-          className="btn btn-ghost text-xl"
-        >
+        <Link href="/playlists" className="btn btn-ghost text-xl">
           Playlists
         </Link>
       </div>

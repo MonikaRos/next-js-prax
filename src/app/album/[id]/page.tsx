@@ -1,80 +1,81 @@
 import { getDb } from "@/lib/db";
 import Link from "next/link";
 
-export default async function AlbumDetailPage({
+function formatDuration(duration: number): string {
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration % 60;
+
+  return `${minutes}` + ":" + `${seconds}`.padStart(2, "0");
+}
+
+export default async function AlbumDetail({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
-  const numericId = Number(id);
   const db = getDb();
 
-const album = await db
-  .selectFrom("albums")
-  .innerJoin("authors", "authors.id", "albums.author_id")
-  .select([
-    "albums.id as id",
-    "albums.name as name",
-    "authors.id as authorId",
-    "authors.name as authorName"
-  ])
-  .where("albums.id", "=", numericId)
-  .executeTakeFirst();
+  const { id } = await params;
 
+  console.log("Album detail id:", id);
+
+  const albumId = parseInt(id);
+
+  if (isNaN(albumId)) {
+    return <div>Invalid Album id</div>;
+  }
+
+  const album = await db
+    .selectFrom("albums")
+    .innerJoin("authors", "authors.id", "albums.author_id")
+    .select([
+      "albums.name",
+      "albums.release_date",
+      "authors.name as author_name",
+      "authors.id as author_id",
+    ])
+    .where("albums.id", "=", albumId)
+    .executeTakeFirst();
+
+  // if (album == null)
+  if (album === null || album === undefined) {
+    // throw new Error("Not Found");
+    return <div>Album not found</div>;
+  }
 
   const songs = await db
     .selectFrom("songs")
-    .select(["id", "name", "duration"])
-    .where("album_id", "=", numericId)
+    .selectAll()
+    .where("album_id", "=", albumId)
     .execute();
-
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <div className="text-3xl font-bold mb-4">
-          ALBUM DETAIL: {album?.name}
-        </div>
-        <div className="text-lg mb-4 font-medium text-gray-700">  {/*Pridanie autora a preklik na jeho detail*/}
-          Autor:{" "} 
-          <Link href={`/author/${album?.authorId}`} className="text-2xl font-bold mb-4">
-          {album?.authorName}
-          </Link>
-        </div>
-
         <div>
-          <h2 className="text-xl font-semibold mb-2">Songs:</h2>
-          <table className="table-auto border-collapse border border-gray-300 w-full mb-4">
+          {album.name} by{" "}
+          <Link href={`/author/${album.author_id}`}>{album.author_name}</Link>
+        </div>
+        <div>
+          <table className="table">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">#</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Duration</th>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Duration</th>
               </tr>
             </thead>
             <tbody>
-              {songs.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="border border-gray-300 px-4 py-2 text-center">
-                    No songs in this album.
-                  </td>
+              {songs.map((song, i) => (
+                <tr key={song.id}>
+                  <td>{i + 1}</td>
+                  <td>{song.name}</td>
+                  <td>{formatDuration(song.duration)}</td>
                 </tr>
-              ) : (
-                songs.map((song, idx) => (
-                  <tr key={song.id}>
-                    <td className="border border-gray-300 px-4 py-2">{idx + 1}</td>
-                    <td className="border border-gray-300 px-4 py-2">{song.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{Math.floor(song.duration / 60)}:{String(song.duration % 60).padStart(2, '0')}</td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-        <Link href="/" className="btn btn-secondary mt-8">
-          Späť na Home
-        </Link>
       </main>
     </div>
   );
